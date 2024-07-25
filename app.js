@@ -1,13 +1,44 @@
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
 
 const port = 5000;
-const host = '127.0.0.1';
+const createPath = (page) => path.resolve(__dirname, 'views', `${page}.html`);
+
 const server = http.createServer((req, res) => {
-  console.log('hello from server');
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  res.write('Hello from backend! Frontenders are losers!');
-  res.end();
+  let basePath = '';
+
+  switch (req.url) {
+    case '/':
+    case '/home':
+    case '/index.js':
+      basePath = createPath('index');
+      break;
+    case '/contacts':
+      basePath = createPath('contacts');
+      break;
+    case '/about-us':
+      res.statusCode = 301;
+      res.setHeader('Location', '/contacts');
+      res.end();
+      break;
+    default:
+      basePath = createPath('error');
+      res.statusCode = 404;
+      break;
+  }
+
+  fs.readFile(basePath, (err, data) => {
+    if (err) {
+      res.statusCode = 500;
+      console.log(err);
+      res.end();
+    } else {
+      res.setHeader('Content-Type', 'text/html');
+      res.write(data);
+      res.end();
+    }
+  });
 });
 
 server.listen(port, (err) => {
