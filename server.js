@@ -1,6 +1,8 @@
 const express = require('express');
 const path = require('path');
 const morgan = require('morgan');
+const mongoose = require('mongoose');
+const Post = require('./models/post');
 
 const app = express();
 
@@ -10,6 +12,13 @@ app.use(express.static('styles'));
 const port = 5000;
 const createPath = (page) =>
   path.resolve(__dirname, 'ejs-views', `${page}.ejs`);
+const db =
+  'mongodb+srv://1026b250977:1026b250977@mfirstcluster.z25fpqb.mongodb.net/';
+
+mongoose
+  .connect(db)
+  .then((res) => console.log('Connected to db'))
+  .catch((err) => console.log(err));
 
 app.use(morgan('tiny'));
 app.use(express.urlencoded({ extended: false }));
@@ -73,14 +82,14 @@ app.get('/add-post', (req, res) => {
 
 app.post('/add-post', (req, res) => {
   const { author, title, text } = req.body;
-  const post = {
-    id: new Date(),
-    date: new Date().toLocaleString(),
-    title,
-    author,
-    text,
-  };
-  res.render(createPath('post'), { post, title });
+  const post = new Post({ author, title, text });
+  post
+    .save()
+    .then((result) => res.send(result))
+    .catch((error) => {
+      console.log(error);
+      res.render(createPath('error'), { title: 'error' });
+    });
 });
 
 app.use((req, res) => {
