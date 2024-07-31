@@ -3,6 +3,7 @@ const path = require('path');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
 const Post = require('./models/post');
+const Contact = require('./models/contacts');
 
 const app = express();
 
@@ -13,7 +14,8 @@ const port = 5000;
 const createPath = (page) =>
   path.resolve(__dirname, 'ejs-views', `${page}.ejs`);
 const db =
-  'mongodb+srv://1026b250977:1026b250977@mfirstcluster.z25fpqb.mongodb.net/';
+  'mongodb+srv://kolesnikaleksv:1026b250977@nodeblog.ggbqowo.mongodb.net/';
+// 'mongodb+srv://kolesnikaleksv:1026b250977@nodeblog.ggbqowo.mongodb.net/?retryWrites=true&w=majority&appName=nodeblog';
 
 mongoose
   .connect(db)
@@ -30,12 +32,15 @@ app.get('/', (req, res) => {
 
 app.get('/contacts', (req, res) => {
   const title = 'contacts';
-  const contacts = [
-    { name: 'Portfolio', link: 'https://webwizardok.com/' },
-    { name: 'Telegrams', link: 'https://t.me/KolisnykOleksandr' },
-    { name: 'GitHub', link: 'https://github.com/kolesnikaleksv' },
-  ];
-  res.render(createPath('contacts'), { contacts, title });
+  Contact.find()
+    .then((contacts) => {
+      console.log(contacts);
+      res.render(createPath('contacts'), { contacts, title });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.render(createPath('error'), { title: 'Error' });
+    });
 });
 
 app.get('/about-us', (req, res) => {
@@ -44,35 +49,27 @@ app.get('/about-us', (req, res) => {
 
 app.get('/posts', (req, res) => {
   const title = 'posts';
-  const posts = [
-    {
-      id: 1,
-      text: 'Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.',
-      title: 'Post title',
-      data: '07.07.2024',
-      author: 'Oleksandr',
-    },
-    {
-      id: 2,
-      text: 'It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.',
-      title: 'Second post title',
-      data: '08.08.2024',
-      author: 'Oleksandr',
-    },
-  ];
-  res.render(createPath('posts'), { title, posts });
+  Post.find()
+    .sort({ createdAt: -1 })
+    .then((posts) => {
+      res.render(createPath('posts'), { title, posts });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.render(createPath('error'), { title: 'Error' });
+    });
 });
 
 app.get('/posts/:id', (req, res) => {
   const title = 'post';
-  const post = {
-    id: 1,
-    text: 'Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.',
-    title: 'Post title',
-    data: '07.07.2024',
-    author: 'Oleksandr',
-  };
-  res.render(createPath('post'), { post, title });
+  Post.findById(req.params.id)
+    .then((post) => {
+      res.render(createPath('post'), { post, title });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.render(createPath('error'), { title: 'Eroro' });
+    });
 });
 
 app.get('/add-post', (req, res) => {
@@ -85,7 +82,7 @@ app.post('/add-post', (req, res) => {
   const post = new Post({ author, title, text });
   post
     .save()
-    .then((result) => res.send(result))
+    .then((result) => res.redirect('/posts'))
     .catch((error) => {
       console.log(error);
       res.render(createPath('error'), { title: 'error' });
