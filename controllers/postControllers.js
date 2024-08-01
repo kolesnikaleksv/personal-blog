@@ -1,6 +1,11 @@
 const Post = require('../models/post');
 const createPath = require('../helpers/createPath');
 
+const hanleError = (error, res) => {
+  console.log(error);
+  res.render(createPath('error'), { title: 'Error' });
+};
+
 const getPosts = (req, res) => {
   const title = 'posts';
   Post.find()
@@ -8,10 +13,7 @@ const getPosts = (req, res) => {
     .then((posts) => {
       res.render(createPath('posts'), { title, posts });
     })
-    .catch((error) => {
-      console.log(error);
-      res.render(createPath('error'), { title: 'Error' });
-    });
+    .catch((error) => hanleError(error, res));
 };
 
 const getPost = (req, res) => {
@@ -20,10 +22,7 @@ const getPost = (req, res) => {
     .then((post) => {
       res.render(createPath('post'), { post, title });
     })
-    .catch((error) => {
-      console.log(error);
-      res.render(createPath('error'), { title: 'Eroro' });
-    });
+    .catch((error) => hanleError(error, res));
 };
 
 const deletePost = (req, res) => {
@@ -32,10 +31,7 @@ const deletePost = (req, res) => {
     .then((result) => {
       res.sendStatus(200);
     })
-    .catch((error) => {
-      console.log(error);
-      res.render(createPath('error'), { title: 'Eroro' });
-    });
+    .catch((error) => hanleError(error, res));
 };
 
 const getEditPost = (req, res) => {
@@ -44,10 +40,7 @@ const getEditPost = (req, res) => {
     .then((post) => {
       res.render(createPath('edit-post'), { post, title });
     })
-    .catch((error) => {
-      console.log(error);
-      res.render(createPath('error'), { title: 'Eroro' });
-    });
+    .catch((error) => hanleError(error, res));
 };
 
 const editPost = (req, res) => {
@@ -56,10 +49,7 @@ const editPost = (req, res) => {
 
   Post.findByIdAndUpdate(id, { author, title, text })
     .then((result) => res.redirect(`/posts/${id}`))
-    .catch((error) => {
-      console.log(error);
-      res.render(createPath('error'), { title: 'error' });
-    });
+    .catch((error) => hanleError(error, res));
 };
 
 const getAddPost = (req, res) => {
@@ -73,10 +63,7 @@ const addPost = (req, res) => {
   post
     .save()
     .then((result) => res.redirect('/posts'))
-    .catch((error) => {
-      console.log(error);
-      res.render(createPath('error'), { title: 'error' });
-    });
+    .catch((error) => hanleError(error, res));
 };
 
 module.exports = {
