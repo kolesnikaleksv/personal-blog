@@ -1,11 +1,16 @@
 const express = require('express');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
+require('dotenv').config();
+const chalk = require('chalk');
 const methodOverride = require('method-override');
 const postRouters = require('./routes/post-routes');
 const contactRouters = require('./routes/contact-routes');
 const createPath = require('./helpers/createPath');
 const apiPostRouters = require('./routes/apiPostRouters');
+
+const errorMsg = chalk.bgKeyword('white').redBright;
+const successMsg = chalk.bgKeyword('green').white;
 
 const app = express();
 
@@ -13,16 +18,10 @@ app.set('view engine', 'ejs');
 app.use(express.static('styles'));
 app.use(methodOverride('_method'));
 
-const port = 5000;
-
-const db =
-  'mongodb+srv://kolesnikaleksv:1026b250977@nodeblog.ggbqowo.mongodb.net/';
-// 'mongodb+srv://kolesnikaleksv:1026b250977@nodeblog.ggbqowo.mongodb.net/?retryWrites=true&w=majority&appName=nodeblog';
-
 mongoose
-  .connect(db)
-  .then((res) => console.log('Connected to db'))
-  .catch((err) => console.log(err));
+  .connect(process.env.MONGO_URI)
+  .then((res) => console.log(successMsg('Connected to db')))
+  .catch((err) => console.log(errorMsg(err)));
 
 app.use(morgan('tiny'));
 app.use(express.urlencoded({ extended: false }));
@@ -45,6 +44,6 @@ app.use((req, res) => {
   res.status(404).render(createPath('error'), { title });
 });
 
-app.listen(port, () => {
-  console.log(`Server was launched on port: ${port}`);
+app.listen(process.env.PORT, () => {
+  console.log(successMsg(`Server was launched on port: ${process.env.PORT}`));
 });
