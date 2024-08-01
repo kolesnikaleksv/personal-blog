@@ -5,6 +5,7 @@ const methodOverride = require('method-override');
 const postRouters = require('./routes/post-routes');
 const contactRouters = require('./routes/contact-routes');
 const createPath = require('./helpers/createPath');
+const apiPostRouters = require('./routes/apiPostRouters');
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use(postRouters);
 app.use(contactRouters);
+app.use(apiPostRouters);
 
 app.get('/', (req, res) => {
   const title = 'Home';
