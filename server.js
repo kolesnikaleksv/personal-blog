@@ -1,10 +1,10 @@
 const express = require('express');
-const path = require('path');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
 const methodOverride = require('method-override');
-const Post = require('./models/post');
-const Contact = require('./models/contacts');
+const postRouters = require('./routes/post-routes');
+const contactRouters = require('./routes/contact-routes');
+const createPath = require('./helpers/createPath');
 
 const app = express();
 
@@ -13,8 +13,7 @@ app.use(express.static('styles'));
 app.use(methodOverride('_method'));
 
 const port = 5000;
-const createPath = (page) =>
-  path.resolve(__dirname, 'ejs-views', `${page}.ejs`);
+
 const db =
   'mongodb+srv://kolesnikaleksv:1026b250977@nodeblog.ggbqowo.mongodb.net/';
 // 'mongodb+srv://kolesnikaleksv:1026b250977@nodeblog.ggbqowo.mongodb.net/?retryWrites=true&w=majority&appName=nodeblog';
@@ -27,103 +26,16 @@ mongoose
 app.use(morgan('tiny'));
 app.use(express.urlencoded({ extended: false }));
 
+app.use(postRouters);
+app.use(contactRouters);
+
 app.get('/', (req, res) => {
   const title = 'Home';
   res.render(createPath('index'), { title });
 });
 
-app.get('/contacts', (req, res) => {
-  const title = 'contacts';
-  Contact.find()
-    .then((contacts) => {
-      res.render(createPath('contacts'), { contacts, title });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.render(createPath('error'), { title: 'Error' });
-    });
-});
-
 app.get('/about-us', (req, res) => {
   res.redirect('/contacts');
-});
-
-app.get('/posts', (req, res) => {
-  const title = 'posts';
-  Post.find()
-    .sort({ createdAt: -1 })
-    .then((posts) => {
-      res.render(createPath('posts'), { title, posts });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.render(createPath('error'), { title: 'Error' });
-    });
-});
-
-app.get('/posts/:id', (req, res) => {
-  const title = 'post';
-  Post.findById(req.params.id)
-    .then((post) => {
-      res.render(createPath('post'), { post, title });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.render(createPath('error'), { title: 'Eroro' });
-    });
-});
-
-app.delete('/posts/:id', (req, res) => {
-  const title = 'post';
-  Post.findByIdAndDelete(req.params.id)
-    .then((result) => {
-      res.sendStatus(200);
-    })
-    .catch((error) => {
-      console.log(error);
-      res.render(createPath('error'), { title: 'Eroro' });
-    });
-});
-
-app.get('/edit/:id', (req, res) => {
-  const title = 'Edit post';
-  Post.findById(req.params.id)
-    .then((post) => {
-      res.render(createPath('edit-post'), { post, title });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.render(createPath('error'), { title: 'Eroro' });
-    });
-});
-
-app.put('/edit/:id', (req, res) => {
-  const { author, title, text } = req.body;
-  const { id } = req.params;
-
-  Post.findByIdAndUpdate(id, { author, title, text })
-    .then((result) => res.redirect(`/posts/${id}`))
-    .catch((error) => {
-      console.log(error);
-      res.render(createPath('error'), { title: 'error' });
-    });
-});
-
-app.get('/add-post', (req, res) => {
-  const title = 'add post';
-  res.render(createPath('add-post'), { title });
-});
-
-app.post('/add-post', (req, res) => {
-  const { author, title, text } = req.body;
-  const post = new Post({ author, title, text });
-  post
-    .save()
-    .then((result) => res.redirect('/posts'))
-    .catch((error) => {
-      console.log(error);
-      res.render(createPath('error'), { title: 'error' });
-    });
 });
 
 app.use((req, res) => {
